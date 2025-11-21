@@ -4,20 +4,21 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Check, 
-  Clock, 
-  Users, 
-  TrendingUp, 
-  Shield, 
+import {
+  Check,
+  Clock,
+  Users,
+  TrendingUp,
+  Shield,
   Crown,
   Star,
   Zap,
   ArrowRight
 } from 'lucide-react';
-import { createPortalSession } from '@/app/(dashboard)/subscription/stripe-session';
+import { upgradeToProDirect } from '@/utils/actions/stripe/actions';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface Profile {
   subscription_plan: string | null;
@@ -40,14 +41,14 @@ const testimonials = [
     avatar: "SC"
   },
   {
-    name: "Marcus Johnson", 
+    name: "Marcus Johnson",
     role: "Product Manager at Meta",
     content: "Went from 2% to 15% response rate. This tool paid for itself with my first interview.",
     avatar: "MJ"
   },
   {
     name: "Emily Rodriguez",
-    role: "Data Scientist at Microsoft", 
+    role: "Data Scientist at Microsoft",
     content: "The tailored resumes feature is a game-changer. Got my dream job in 3 weeks.",
     avatar: "ER"
   }
@@ -56,30 +57,35 @@ const testimonials = [
 export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscriptionPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  
+
   const isPro = initialProfile?.subscription_plan?.toLowerCase() === 'pro';
   const isCanceling = initialProfile?.subscription_status === 'canceled';
 
   const handleUpgrade = async () => {
     if (isPro) {
-      // Handle portal session for existing pro users
-      try {
-        setIsLoading(true);
-        const result = await createPortalSession();
-        if (result?.url) {
-          window.location.href = result.url;
-        }
-      } catch {
-        // Handle error silently
-      } finally {
-        setIsLoading(false);
+      // For Pro users, show a message that they're already subscribed
+      toast.info('You already have Pro access!');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Direct upgrade without Stripe
+      const result = await upgradeToProDirect();
+
+      if (result.success) {
+        toast.success('🎉 Welcome to Pro! Your account has been upgraded.');
+        // Refresh the page to show updated subscription status
+        router.refresh();
+      } else {
+        toast.error(result.error || 'Failed to upgrade subscription');
       }
-    } else {
-      // Handle checkout for free users
-      const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-      if (priceId) {
-        router.push(`/subscription/checkout?price_id=${priceId}`);
-      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -88,12 +94,12 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
     ? Math.max(0, Math.ceil((new Date(initialProfile.current_period_end).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
 
-  const endDate = initialProfile?.current_period_end 
+  const endDate = initialProfile?.current_period_end
     ? new Date(initialProfile.current_period_end).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long', 
-        day: 'numeric'
-      })
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
     : null;
 
   return (
@@ -106,7 +112,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
 
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-6xl pb-24">
         {/* Header Section - State Aware */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-4"
@@ -160,7 +166,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
         </motion.div>
 
         {/* Social Proof Bar */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -179,7 +185,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Left Column - Value Proposition */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
@@ -190,7 +196,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
               <h2 className="text-2xl font-semibold text-gray-900">
                 {isPro ? "Your Pro Benefits" : "What you get with Pro"}
               </h2>
-              
+
               <div className="grid gap-4">
                 {[
                   {
@@ -200,7 +206,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
                     highlight: true
                   },
                   {
-                    icon: TrendingUp, 
+                    icon: TrendingUp,
                     title: "Higher response rates",
                     description: "Members see 300% increase in interview invitations",
                     highlight: true
@@ -211,7 +217,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
                     description: "No limits on resumes, tailoring, or AI assistance"
                   }
                 ].map((benefit, index) => (
-                  <div 
+                  <div
                     key={index}
                     className={cn(
                       "flex items-start space-x-4 p-4 rounded-lg transition-colors",
@@ -260,7 +266,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
           </motion.div>
 
           {/* Right Column - Pricing & CTA */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
@@ -271,7 +277,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
               {!isPro && (
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-purple-600" />
               )}
-              
+
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center mb-2">
                   <h3 className="text-2xl font-bold text-gray-900">ResumeLM Pro</h3>
@@ -279,12 +285,12 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
                     <Badge className="ml-3 bg-blue-100 text-blue-700">Most Popular</Badge>
                   )}
                 </div>
-                
+
                 <div className="mb-4">
                   <span className="text-4xl font-bold text-gray-900">$20</span>
                   <span className="text-gray-600">/month</span>
                 </div>
-                
+
                 {!isPro && (
                   <div className="space-y-2 text-sm text-gray-600">
                     <p>💰 <strong>Pays for itself</strong> with one interview</p>
@@ -298,7 +304,7 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
               <div className="space-y-3 mb-8">
                 {[
                   "Unlimited base resumes",
-                  "Unlimited AI-tailored resumes", 
+                  "Unlimited AI-tailored resumes",
                   "Advanced AI assistance",
                   "Premium ATS-optimized templates",
                   "Priority customer support",
@@ -338,10 +344,10 @@ export function OptimizedSubscriptionPage({ initialProfile }: OptimizedSubscript
                     <span>Processing...</span>
                   </div>
                 ) : isPro ? (
-                  "Manage Subscription"
+                  "✓ You Have Pro Access"
                 ) : (
                   <div className="flex items-center justify-center space-x-2">
-                    <span>Start Landing More Interviews</span>
+                    <span>Upgrade to Pro</span>
                     <ArrowRight className="h-5 w-5" />
                   </div>
                 )}

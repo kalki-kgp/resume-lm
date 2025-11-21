@@ -16,11 +16,6 @@ const withMDX = mdx({
 });
 
 const nextConfig: NextConfig = {
-  experimental: {
-    turbo: {
-      // ...
-    },
-  },
   // Allow MDX files to be considered pages/components
   pageExtensions: ['ts', 'tsx', 'mdx'],
   productionBrowserSourceMaps: false,

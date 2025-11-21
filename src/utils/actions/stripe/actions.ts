@@ -34,7 +34,7 @@ export async function createOrRetrieveCustomer({
   // If no customer exists, create one
   const customerID = await createCustomerInStripe(uuid, email);
   await upsertCustomerToSupabase(uuid, customerID);
-  
+
   return customerID;
 }
 
@@ -120,7 +120,7 @@ export async function manageSubscriptionStatusChange(
     subscription_plan: plan,
     subscription_status: subscription.cancel_at_period_end ? 'canceled' : subscription.status === 'active' ? 'active' : 'canceled',
     current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
-    trial_end: subscription.trial_end 
+    trial_end: subscription.trial_end
       ? new Date(subscription.trial_end * 1000).toISOString()
       : null,
     updated_at: new Date().toISOString()
@@ -152,13 +152,13 @@ export async function manageSubscriptionStatusChange(
       const { error } = await supabase
         .from('subscriptions')
         .upsert(
-          { 
-            ...subscriptionData, 
-            created_at: new Date().toISOString() 
+          {
+            ...subscriptionData,
+            created_at: new Date().toISOString()
           },
-          { 
+          {
             onConflict: 'user_id',
-            ignoreDuplicates: false 
+            ignoreDuplicates: false
           }
         );
 
@@ -209,7 +209,7 @@ export async function getSubscriptionStatus() {
   const supabase = await createClient();
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+
   if (userError || !user) {
     throw new Error('User not authenticated');
   }
@@ -252,7 +252,7 @@ export async function createCheckoutSession(priceId: string) {
   const supabase = await createClient();
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+
   if (userError || !user) {
     throw new Error('User not authenticated');
   }
@@ -281,7 +281,7 @@ export async function cancelSubscription() {
   const supabase = await createClient();
 
   const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+
   if (userError || !user) {
     throw new Error('User not authenticated');
   }
@@ -320,7 +320,7 @@ export async function cancelSubscription() {
 export async function checkSubscriptionPlan() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) return { plan: '', status: '', currentPeriodEnd: '' };
 
   const { data } = await supabase
@@ -339,7 +339,7 @@ export async function checkSubscriptionPlan() {
 export async function getSubscriptionPlan(returnId?: boolean) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) return '';
 
   const { data } = await supabase
@@ -359,9 +359,9 @@ export async function getSubscriptionPlan(returnId?: boolean) {
 }
 
 export async function toggleSubscriptionPlan(newPlan: 'free' | 'pro'): Promise<'free' | 'pro'> {
-  
+
   const supabase = await createServiceClient();
-  
+
 
 
   try {
@@ -389,3 +389,74 @@ export async function toggleSubscriptionPlan(newPlan: 'free' | 'pro'): Promise<'
     throw new Error('Failed to toggle subscription plan');
   }
 }
+
+/**
+ * Directly upgrade user to Pro without Stripe payment
+ * This is a simplified version for development/testing
+ */
+export async function upgradeToProDirect(): Promise<{ success: boolean, error?: string }> {
+  try {
+    const supabase = await createClient();
+
+    // Get authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Use service client for database operations
+    const serviceSupabase = await createServiceClient();
+
+    // Check if subscription record exists
+    const { data: existingSubscription } = await serviceSupabase
+      .from('subscriptions')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (existingSubscription) {
+      // Update existing subscription
+      const { error: updateError } = await serviceSupabase
+        .from('subscriptions')
+        .update({
+          subscription_plan: 'pro',
+          subscription_status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error('Error updating subscription:', updateError);
+        return { success: false, error: 'Failed to update subscription' };
+      }
+    } else {
+      // Create new subscription record
+      const { error: insertError } = await serviceSupabase
+        .from('subscriptions')
+        .insert({
+          user_id: user.id,
+          subscription_plan: 'pro',
+          subscription_status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (insertError) {
+        console.error('Error creating subscription:', insertError);
+        return { success: false, error: 'Failed to create subscription' };
+      }
+    }
+
+    // Revalidate paths to update UI
+    revalidatePath('/', 'layout');
+    revalidatePath('/subscription', 'page');
+    revalidatePath('/home', 'page');
+
+    return { success: true };
+  } catch (error) {
+    console.error('Upgrade error:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
