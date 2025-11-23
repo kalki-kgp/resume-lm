@@ -85,6 +85,7 @@ export interface Resume {
   };
   has_cover_letter: boolean;
   cover_letter?: Record<string, unknown> | null;
+  template_id?: 'default' | 'modern' | 'classic' | 'minimalist';
 }
 
 export interface ResumeSummary {

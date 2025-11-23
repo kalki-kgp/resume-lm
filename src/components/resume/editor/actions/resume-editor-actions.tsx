@@ -7,6 +7,9 @@ import { toast } from "@/hooks/use-toast";
 import { pdf } from '@react-pdf/renderer';
 import { TextImport } from "../../text-import";
 import { ResumePDFDocument } from "../preview/resume-pdf-document";
+import { ModernTemplate } from "../preview/templates/modern-template";
+import { ClassicTemplate } from "../preview/templates/classic-template";
+import { MinimalistTemplate } from "../preview/templates/minimalist-template";
 import { cn } from "@/lib/utils";
 import { useResumeContext } from "../resume-editor-context";
 
@@ -110,12 +113,32 @@ export function ResumeEditorActions({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
+              <Button
                 onClick={async () => {
                   try {
                     // Download Resume if selected
                     if (downloadOptions.resume) {
-                      const blob = await pdf(<ResumePDFDocument resume={resume} />).toBlob();
+                      // Get the appropriate template component
+                      const templateId = resume.template_id || 'default';
+                      let templateComponent;
+
+                      switch (templateId) {
+                        case 'modern':
+                          templateComponent = <ModernTemplate resume={resume} />;
+                          break;
+                        case 'classic':
+                          templateComponent = <ClassicTemplate resume={resume} />;
+                          break;
+                        case 'minimalist':
+                          templateComponent = <MinimalistTemplate resume={resume} />;
+                          break;
+                        case 'default':
+                        default:
+                          templateComponent = <ResumePDFDocument resume={resume} />;
+                          break;
+                      }
+
+                      const blob = await pdf(templateComponent).toBlob();
                       const url = URL.createObjectURL(blob);
                       const link = document.createElement('a');
                       link.href = url;

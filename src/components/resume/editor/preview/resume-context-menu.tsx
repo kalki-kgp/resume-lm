@@ -11,6 +11,9 @@ import { toast } from "@/hooks/use-toast";
 import { Resume, WorkExperience, Education, Project } from "@/lib/types";
 import { pdf } from '@react-pdf/renderer';
 import { ResumePDFDocument } from "../preview/resume-pdf-document";
+import { ModernTemplate } from "./templates/modern-template";
+import { ClassicTemplate } from "./templates/classic-template";
+import { MinimalistTemplate } from "./templates/minimalist-template";
 
 interface ResumeContextMenuProps {
   children: React.ReactNode;
@@ -18,9 +21,26 @@ interface ResumeContextMenuProps {
 }
 
 export function ResumeContextMenu({ children, resume }: ResumeContextMenuProps) {
+  const getTemplateComponent = () => {
+    const templateId = resume.template_id || 'default';
+
+    switch (templateId) {
+      case 'modern':
+        return <ModernTemplate resume={resume} />;
+      case 'classic':
+        return <ClassicTemplate resume={resume} />;
+      case 'minimalist':
+        return <MinimalistTemplate resume={resume} />;
+      case 'default':
+      default:
+        return <ResumePDFDocument resume={resume} />;
+    }
+  };
+
   const handleDownloadPDF = async () => {
     try {
-      const blob = await pdf(<ResumePDFDocument resume={resume} />).toBlob();
+      const templateComponent = getTemplateComponent();
+      const blob = await pdf(templateComponent).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

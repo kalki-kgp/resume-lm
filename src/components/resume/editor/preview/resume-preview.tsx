@@ -13,6 +13,9 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { ResumePDFDocument } from './resume-pdf-document';
+import { ModernTemplate } from './templates/modern-template';
+import { ClassicTemplate } from './templates/classic-template';
+import { MinimalistTemplate } from './templates/minimalist-template';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 
 // Import required CSS for react-pdf
@@ -51,8 +54,9 @@ function generateResumeHash(resume: Resume): string {
       education: resume.education,
     },
     settings: resume.document_settings,
+    template: resume.template_id || 'default',
   });
-  
+
   // Simple hash function
   let hash = 0;
   for (let i = 0; i < content.length; i++) {
@@ -135,6 +139,23 @@ export const ResumePreview = memo(function ResumePreview({ resume, variant = 'ba
     };
   }, []);
 
+  // Get the appropriate template component based on template_id
+  const getTemplateComponent = useCallback(() => {
+    const templateId = resume.template_id || 'default';
+
+    switch (templateId) {
+      case 'modern':
+        return <ModernTemplate resume={resume} variant={variant} />;
+      case 'classic':
+        return <ClassicTemplate resume={resume} variant={variant} />;
+      case 'minimalist':
+        return <MinimalistTemplate resume={resume} variant={variant} />;
+      case 'default':
+      default:
+        return <ResumePDFDocument resume={resume} variant={variant} />;
+    }
+  }, [resume, variant]);
+
   // Generate or retrieve PDF from cache
   useEffect(() => {
     let currentUrl: string | null = null;
@@ -149,10 +170,11 @@ export const ResumePreview = memo(function ResumePreview({ resume, variant = 'ba
       }
 
       // Generate new PDF if not in cache
-      const blob = await pdf(<ResumePDFDocument resume={resume} variant={variant} />).toBlob();
+      const templateComponent = getTemplateComponent();
+      const blob = await pdf(templateComponent).toBlob();
       const newUrl = URL.createObjectURL(blob);
       currentUrl = newUrl;
-      
+
       // Store in cache with timestamp
       pdfCache.set(resumeHash, { url: newUrl, timestamp: Date.now() });
       setUrl(newUrl);
@@ -166,7 +188,7 @@ export const ResumePreview = memo(function ResumePreview({ resume, variant = 'ba
         URL.revokeObjectURL(currentUrl);
       }
     };
-  }, [resumeHash, variant, resume]);
+  }, [resumeHash, variant, resume, getTemplateComponent]);
 
   // Cleanup on component unmount
   useEffect(() => {

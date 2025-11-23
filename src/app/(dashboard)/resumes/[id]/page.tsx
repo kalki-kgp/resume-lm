@@ -52,7 +52,9 @@ function normalizeResumeData(resume: Resume): Resume {
       education_margin_bottom: 2,
       education_margin_horizontal: 0,
       education_item_spacing: 4
-    }
+    },
+    // Set default template if not present
+    template_id: resume.template_id || 'default'
   };
 }
 
