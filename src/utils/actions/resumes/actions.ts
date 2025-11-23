@@ -80,16 +80,26 @@ export async function updateResume(resumeId: string, data: Partial<Resume>): Pro
     throw new Error('User not authenticated');
   }
 
+  // Filter out template_id since the column doesn't exist in the database yet
+  // TODO: Add template_id column to database schema: ALTER TABLE resumes ADD COLUMN template_id text;
+  const { template_id, ...updateData } = data;
+
   const { data: resume, error: updateError } = await supabase
     .from('resumes')
-    .update(data)
+    .update(updateData)
     .eq('id', resumeId)
     .eq('user_id', user.id)
     .select()
     .single();
 
   if (updateError) {
-    throw new Error('Failed to update resume');
+    console.error('Update error:', updateError);
+    throw new Error(`Failed to update resume: ${updateError.message}`);
+  }
+
+  // Restore template_id to the returned resume (client-side only for now)
+  if (resume && template_id !== undefined) {
+    return { ...resume, template_id };
   }
 
   return resume;

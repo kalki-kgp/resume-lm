@@ -6,12 +6,14 @@ interface EditorLayoutProps {
   isBaseResume: boolean;
   editorPanel: ReactNode;
   previewPanel: (width: number) => ReactNode;
+  templateSelectorPanel: ReactNode;
 }
 
 export function EditorLayout({
   isBaseResume,
   editorPanel,
-  previewPanel
+  previewPanel,
+  templateSelectorPanel
 }: EditorLayoutProps) {
   return (
     <main className={cn(
@@ -27,6 +29,7 @@ export function EditorLayout({
             isBaseResume={isBaseResume}
             editorPanel={editorPanel}
             previewPanel={previewPanel}
+            templateSelectorPanel={templateSelectorPanel}
           />
       </div>
     </main>

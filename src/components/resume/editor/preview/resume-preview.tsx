@@ -117,17 +117,22 @@ export const ResumePreview = memo(function ResumePreview({ resume, variant = 'ba
   const [numPages, setNumPages] = useState<number>(0);
   const debouncedWidth = useDebouncedValue(containerWidth, 100);
   
+  // Debounce the resume to prevent constant PDF regeneration
+  const debouncedResume = useDebouncedValue(resume, 500);
 
-  // Convert percentage to pixels based on parent container
+  // Convert container width to PDF page width, ensuring it fits
   const getPixelWidth = useCallback(() => {
     if (typeof window === 'undefined') return 0;
-    // console.log('debouncedWidth (INSIDE)'+containerWidth);
-    // console.log('debouncedWidth * 10 (INSIDE)'+debouncedWidth * 10);
-    return ((debouncedWidth));
+    // Get the actual container width, accounting for padding
+    const containerWidthPx = debouncedWidth - 32; // Subtract padding (p-4 = 16px on each side)
+    // Ensure minimum width and maximum width for readability
+    const minWidth = 400;
+    const maxWidth = 800;
+    return Math.max(minWidth, Math.min(maxWidth, containerWidthPx));
   }, [debouncedWidth]);
 
-  // Generate resume hash for caching
-  const resumeHash = useMemo(() => generateResumeHash(resume), [resume]);
+  // Generate resume hash for caching - use debounced resume
+  const resumeHash = useMemo(() => generateResumeHash(debouncedResume), [debouncedResume]);
 
   // Add styles to document head
   useEffect(() => {
@@ -139,22 +144,22 @@ export const ResumePreview = memo(function ResumePreview({ resume, variant = 'ba
     };
   }, []);
 
-  // Get the appropriate template component based on template_id
+  // Get the appropriate template component based on template_id - use debounced resume
   const getTemplateComponent = useCallback(() => {
-    const templateId = resume.template_id || 'default';
+    const templateId = debouncedResume.template_id || 'default';
 
     switch (templateId) {
       case 'modern':
-        return <ModernTemplate resume={resume} variant={variant} />;
+        return <ModernTemplate resume={debouncedResume} variant={variant} />;
       case 'classic':
-        return <ClassicTemplate resume={resume} variant={variant} />;
+        return <ClassicTemplate resume={debouncedResume} variant={variant} />;
       case 'minimalist':
-        return <MinimalistTemplate resume={resume} variant={variant} />;
+        return <MinimalistTemplate resume={debouncedResume} variant={variant} />;
       case 'default':
       default:
-        return <ResumePDFDocument resume={resume} variant={variant} />;
+        return <ResumePDFDocument resume={debouncedResume} variant={variant} />;
     }
-  }, [resume, variant]);
+  }, [debouncedResume, variant]);
 
   // Generate or retrieve PDF from cache
   useEffect(() => {
@@ -278,11 +283,11 @@ export const ResumePreview = memo(function ResumePreview({ resume, variant = 'ba
 
   // Display the generated PDF using react-pdf
   return (
-    <div className=" h-full relative bg-black/15">
+    <div className="relative bg-black/15">
         <Document
           file={url}
           onLoadSuccess={onDocumentLoadSuccess}
-          className="relative h-full   "
+          className="relative"
           externalLinkTarget="_blank"
           loading={
             <div className="w-full aspect-[8.5/11] bg-white  p-8">

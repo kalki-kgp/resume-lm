@@ -11,6 +11,7 @@ import { EditorLayout } from "./layout/EditorLayout";
 import { EditorPanel } from './panels/editor-panel';
 import { PreviewPanel } from './panels/preview-panel';
 import { UnsavedChangesDialog } from './dialogs/unsaved-changes-dialog';
+import { TemplateSelectorPanel } from './panels/template-selector-panel';
 
 interface ResumeEditorClientProps {
   initialResume: Resume;
@@ -33,7 +34,7 @@ export function ResumeEditorClient({
 
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
-  const debouncedResume = useDebouncedValue(state.resume, 100);
+  const debouncedResume = useDebouncedValue(state.resume, 500);
   const [job, setJob] = useState<Job | null>(initialJob ?? null);
   const [isLoadingJob, setIsLoadingJob] = useState(false);
 
@@ -146,6 +147,14 @@ export function ResumeEditorClient({
     />
   );
 
+  // Template Selector Panel
+  const templateSelectorPanel = (
+    <TemplateSelectorPanel
+      resume={state.resume}
+      onResumeChange={updateField}
+    />
+  );
+
   return (
     <ResumeContext.Provider value={{ state, dispatch }}>
       {/* Unsaved Changes Dialog */}
@@ -167,6 +176,7 @@ export function ResumeEditorClient({
         isBaseResume={state.resume.is_base_resume}
         editorPanel={editorPanel}
         previewPanel={previewPanel}
+        templateSelectorPanel={templateSelectorPanel}
       />
     </ResumeContext.Provider>
   );

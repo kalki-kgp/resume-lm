@@ -9,6 +9,7 @@ import { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react"
 import Link from "next/link";
 import { cookies } from "next/headers";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -105,6 +106,15 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        {/* React Grab - Only in development */}
+        {process.env.NODE_ENV === "development" && (
+          <Script
+            src="//unpkg.com/react-grab/dist/index.global.js"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+            data-enabled="true"
+          />
+        )}
         {isImpersonating && user && (
           <div className="bg-amber-500 text-white text-center text-sm py-2">
             Impersonating&nbsp;<span className="font-semibold">{user.email ?? user.id}</span>.&nbsp;

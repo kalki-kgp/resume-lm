@@ -1,70 +1,38 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { cn } from '@/lib/utils';
-import { TEMPLATE_METADATA, TEMPLATE_ORDER, TemplateId } from './templates/template-config';
-import { ChevronRight, ChevronLeft, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Resume } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { TEMPLATE_METADATA, TEMPLATE_ORDER, TemplateId } from "../preview/templates/template-config";
+import { Check } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface TemplateSelectorProps {
-  selectedTemplate: TemplateId;
-  onTemplateSelect: (templateId: TemplateId) => void;
-  containerWidth: number;
+interface TemplateSelectorPanelProps {
+  resume: Resume;
+  onResumeChange: (field: keyof Resume, value: Resume[keyof Resume]) => void;
 }
 
-export function TemplateSelector({
-  selectedTemplate,
-  onTemplateSelect,
-  containerWidth,
-}: TemplateSelectorProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+export function TemplateSelectorPanel({
+  resume,
+  onResumeChange,
+}: TemplateSelectorPanelProps) {
+  const selectedTemplate = resume.template_id || 'default';
 
-  const toggleExpanded = useCallback(() => {
-    setIsExpanded(prev => !prev);
-  }, []);
+  const handleTemplateSelect = (templateId: TemplateId) => {
+    onResumeChange('template_id', templateId);
+  };
 
   return (
-    <div className="relative h-full w-full pointer-events-auto">
-      {/* Toggle Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleExpanded}
-        className={cn(
-          "absolute top-4 z-50 transition-all duration-300 ease-in-out",
-          "bg-white/90 hover:bg-white shadow-md border border-gray-200",
-          "rounded-full w-10 h-10 pointer-events-auto",
-          isExpanded ? "right-[280px]" : "right-4"
-        )}
-        title={isExpanded ? "Hide templates" : "Show templates"}
-      >
-        {isExpanded ? (
-          <ChevronRight className="h-5 w-5 text-gray-700" />
-        ) : (
-          <ChevronLeft className="h-5 w-5 text-gray-700" />
-        )}
-      </Button>
+    <div className="h-full w-full flex flex-col bg-white border-l border-gray-200">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
+        <h3 className="font-semibold text-lg text-gray-800">Templates</h3>
+        <p className="text-xs text-gray-600 mt-1">Choose a resume template</p>
+      </div>
 
-      {/* Sidebar Panel */}
-      <div
-        className={cn(
-          "absolute top-0 right-0 h-full bg-white border-l border-gray-200 shadow-xl",
-          "transition-all duration-300 ease-in-out overflow-hidden",
-          "flex flex-col pointer-events-auto",
-          isExpanded ? "w-[280px]" : "w-0"
-        )}
-      >
-        {/* Header */}
-        <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
-          <h3 className="font-semibold text-lg text-gray-800">Templates</h3>
-          <p className="text-xs text-gray-600 mt-1">Choose a resume template</p>
-        </div>
-
-        {/* Template List */}
-        <div className="flex-1 min-h-0">
-          <ScrollArea className="h-full">
-            <div className="p-4 space-y-3">
+      {/* Template List */}
+      <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full">
+          <div className="p-4 space-y-3">
             {TEMPLATE_ORDER.map((templateId) => {
               const template = TEMPLATE_METADATA[templateId];
               const isSelected = selectedTemplate === templateId;
@@ -72,7 +40,7 @@ export function TemplateSelector({
               return (
                 <button
                   key={templateId}
-                  onClick={() => onTemplateSelect(templateId)}
+                  onClick={() => handleTemplateSelect(templateId)}
                   className={cn(
                     "w-full group relative overflow-hidden rounded-lg border-2 transition-all duration-200",
                     "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
@@ -114,18 +82,9 @@ export function TemplateSelector({
                 </button>
               );
             })}
-            </div>
-          </ScrollArea>
-        </div>
+          </div>
+        </ScrollArea>
       </div>
-
-      {/* Overlay when expanded (optional - for mobile) */}
-      {isExpanded && (
-        <div
-          className="fixed inset-0 bg-black/20 z-40 lg:hidden"
-          onClick={toggleExpanded}
-        />
-      )}
     </div>
   );
 }
@@ -249,3 +208,4 @@ function TemplatePreviewIcon({ templateId }: { templateId: TemplateId }) {
       return null;
   }
 }
+
