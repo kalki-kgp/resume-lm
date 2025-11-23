@@ -192,7 +192,8 @@ export type ServiceName =
   | 'openai'
   // | 'azure'
   | 'anthropic'
-  | 'openrouter';
+  | 'openrouter'
+  | 'nebius';
   // | 'bedrock'
   // | 'google'
   // | 'vertex'

@@ -88,6 +88,14 @@ export const PROVIDERS: Partial<Record<ServiceName, AIProvider>> = {
     unstable: false
     
   },
+  nebius: {
+    id: 'nebius',
+    name: 'Nebius',
+    apiLink: 'https://nebius.com/',
+    envKey: 'NEBIUS_API_KEY',
+    sdkInitializer: 'openai', // Uses OpenAI SDK with custom baseURL
+    unstable: false
+  },
 }
 
 // ========================
@@ -258,6 +266,41 @@ export const AI_MODELS: AIModel[] = [
     }
   },
 
+  // Nebius Models
+  {
+    id: 'zai-org/GLM-4.5-Air',
+    name: 'GLM-4.5-Air',
+    provider: 'nebius',
+    features: {
+      isFree: true,
+      isRecommended: false,
+      isUnstable: false,
+      maxTokens: 128000,
+      supportsVision: false,
+      supportsTools: true
+    },
+    availability: {
+      requiresApiKey: false,
+      requiresPro: false
+    }
+  },
+  {
+    id: 'moonshotai/Kimi-K2-Instruct',
+    name: 'Kimi-K2-Instruct',
+    provider: 'nebius',
+    features: {
+      isRecommended: false,
+      isUnstable: false,
+      maxTokens: 128000,
+      supportsVision: false,
+      supportsTools: true,
+      isPro: true
+    },
+    availability: {
+      requiresApiKey: true,
+      requiresPro: true
+    }
+  },
 
 ]
 
@@ -281,7 +324,7 @@ const MODEL_ALIASES: Record<string, string> = {
 
 export const DEFAULT_MODELS = {
   PRO_USER: 'claude-sonnet-4-20250514',
-  FREE_USER: 'gpt-4.1-nano'
+  FREE_USER: 'zai-org/GLM-4.5-Air'
 } as const
 
 // ========================
@@ -297,7 +340,7 @@ export const MODEL_DESIGNATIONS = {
   FAST_CHEAP: 'openai/gpt-oss-20b:nitro',
   
   // Alternative fast & cheap option (free for all users)
-  FAST_CHEAP_FREE: 'gpt-4.1-nano',
+  FAST_CHEAP_FREE: 'zai-org/GLM-4.5-Air',
   
   // Frontier model for complex tasks, deep analysis, best quality
   FRONTIER: 'claude-sonnet-4-20250514',
@@ -313,7 +356,7 @@ export const MODEL_DESIGNATIONS = {
   
   // Default models by user type
   DEFAULT_PRO: 'claude-sonnet-4-20250514',
-  DEFAULT_FREE: 'gpt-4.1-nano'
+  DEFAULT_FREE: 'zai-org/GLM-4.5-Air'
 } as const
 
 // Type for model designations
@@ -367,7 +410,7 @@ export function isModelAvailable(
   const model = getModelById(modelId)
   if (!model) return false
 
-  // Free model (gpt-4.1-nano)
+  // Free models (GLM-4.5-Air, gpt-4.1-nano, etc.)
   if (model.features.isFree) return true
 
   // Check if this is an OpenRouter model (contains forward slash)
@@ -399,7 +442,7 @@ export function getModelProvider(modelId: string): AIProvider | undefined {
  * Group models by provider for display
  */
 export function groupModelsByProvider(): GroupedModels[] {
-  const providerOrder: ServiceName[] = ['anthropic', 'openai']
+  const providerOrder: ServiceName[] = ['anthropic', 'openai', 'nebius']
   const grouped = new Map<ServiceName, AIModel[]>()
 
   // Group models by provider

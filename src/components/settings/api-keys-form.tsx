@@ -104,6 +104,8 @@ export function ApiKeysForm({ isProPlan }: { isProPlan: boolean }) {
           return MODEL_DESIGNATIONS.FRONTIER_ALT
         case 'openrouter':
           return MODEL_DESIGNATIONS.BALANCED
+        case 'nebius':
+          return 'moonshotai/Kimi-K2-Instruct' // Pro model for Nebius
         default:
           return defaultModel
       }

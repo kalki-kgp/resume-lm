@@ -4,13 +4,16 @@ import { LanguageModelV1, streamText } from 'ai';
 import { createStreamableValue } from 'ai/rsc';
 import { initializeAIClient, type AIConfig } from '@/utils/ai-tools';
 import { getSubscriptionPlan } from '../stripe/actions';
+import { MODEL_DESIGNATIONS } from '@/lib/ai-models';
 
 export async function generate(input: string, config?: AIConfig) {
   try {
     const stream = createStreamableValue('');
     const subscriptionPlan = await getSubscriptionPlan();
     const isPro = subscriptionPlan === 'pro';
-    const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+    // Use free model if no config provided
+    const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+    const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
 
    const system = `
    

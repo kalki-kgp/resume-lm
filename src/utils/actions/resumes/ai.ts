@@ -96,7 +96,9 @@ export async function convertTextToResume(prompt: string, existingResume: Resume
     ) { 
       const subscriptionPlan = await getSubscriptionPlan();
       const isPro = subscriptionPlan === 'pro';
-      const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+      // Use free model if no config provided
+      const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+      const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
   
       const { object } = await generateObject({
         model: aiClient,
@@ -118,7 +120,9 @@ export async function convertTextToResume(prompt: string, existingResume: Resume
       export async function improveWorkExperience(point: string, customPrompt?: string, config?: AIConfig) {
           const subscriptionPlan = await getSubscriptionPlan();
           const isPro = subscriptionPlan === 'pro';
-          const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+          // Use free model if no config provided
+          const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+          const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
           
           const { object } = await generateObject({
           model: aiClient,
@@ -139,7 +143,9 @@ export async function convertTextToResume(prompt: string, existingResume: Resume
           
           const subscriptionPlan = await getSubscriptionPlan();
           const isPro = subscriptionPlan === 'pro';
-          const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+          // Use free model if no config provided
+          const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+          const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
 
   
           const { object } = await generateObject({
@@ -165,7 +171,9 @@ export async function convertTextToResume(prompt: string, existingResume: Resume
       ) {
           const subscriptionPlan = await getSubscriptionPlan();
           const isPro = subscriptionPlan === 'pro';
-          const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+          // Use free model if no config provided
+          const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+          const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
           
           const { object } = await generateObject({
           model: aiClient,
@@ -184,7 +192,9 @@ export async function convertTextToResume(prompt: string, existingResume: Resume
       
       // Text Import for profile
       export async function processTextImport(text: string, config?: AIConfig) {
-          const aiClient = initializeAIClient(config);
+          // Use free model if no config provided
+          const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+          const aiClient = initializeAIClient(finalConfig);
           
           const { object } = await generateObject({
           model: aiClient,
@@ -206,7 +216,9 @@ export async function convertTextToResume(prompt: string, existingResume: Resume
       ) {
           const subscriptionPlan = await getSubscriptionPlan();
           const isPro = subscriptionPlan === 'pro';
-          const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+          // Use free model if no config provided
+          const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+          const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
           
           const { object } = await generateObject({
           model: aiClient,
@@ -227,7 +239,9 @@ export async function convertTextToResume(prompt: string, existingResume: Resume
       export async function addTextToResume(prompt: string, existingResume: Resume, config?: AIConfig) {
           const subscriptionPlan = await getSubscriptionPlan();
           const isPro = subscriptionPlan === 'pro';
-          const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+          // Use free model if no config provided
+          const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+          const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
   
           
           const { object } = await generateObject({

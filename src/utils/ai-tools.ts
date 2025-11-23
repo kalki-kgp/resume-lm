@@ -74,6 +74,13 @@ export function initializeAIClient(config?: AIConfig, isPro?: boolean, useThinki
           }
         })(resolvedModelId) as LanguageModelV1;
       
+      case 'nebius':
+        return createOpenAI({
+          apiKey: envKey,
+          baseURL: 'https://api.tokenfactory.nebius.com/v1/',
+          compatibility: 'strict'
+        })(resolvedModelId) as LanguageModelV1;
+      
       default:
         throw new Error(`Unsupported provider: ${provider.id}`);
     }
@@ -93,7 +100,7 @@ export function initializeAIClient(config?: AIConfig, isPro?: boolean, useThinki
     throw new Error(`Unknown model: ${model}`);
   }
   
-  // Special case: GPT 4.1 Nano is free for all users
+  // Special case: Free models (GLM-4.5-Air, GPT 4.1 Nano, etc.) are free for all users
   // Also allow GPT OSS models to use server-side OpenRouter key
   if (modelData.features.isFree || resolvedModelId.includes('/')) {
     // For OpenRouter models (with slash), use OpenRouter key
@@ -111,7 +118,7 @@ export function initializeAIClient(config?: AIConfig, isPro?: boolean, useThinki
       })(resolvedModelId) as LanguageModelV1;
     }
     
-    // For regular free models like GPT 4.1 Nano
+    // For regular free models like GLM-4.5-Air or GPT 4.1 Nano
     const envKey = process.env[provider.envKey];
     if (!envKey) throw new Error(`${provider.name} API key not found`);
     
@@ -119,6 +126,14 @@ export function initializeAIClient(config?: AIConfig, isPro?: boolean, useThinki
       return createOpenAI({ 
         apiKey: envKey,
         compatibility: 'strict',
+      })(resolvedModelId) as LanguageModelV1;
+    }
+    
+    if (provider.id === 'nebius') {
+      return createOpenAI({
+        apiKey: envKey,
+        baseURL: 'https://api.tokenfactory.nebius.com/v1/',
+        compatibility: 'strict'
       })(resolvedModelId) as LanguageModelV1;
     }
   }
@@ -165,6 +180,13 @@ export function initializeAIClient(config?: AIConfig, isPro?: boolean, useThinki
           'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
           'X-Title': 'ResumeLM'
         }
+      })(resolvedModelId) as LanguageModelV1;
+    
+    case 'nebius':
+      return createOpenAI({
+        apiKey: userApiKey,
+        baseURL: 'https://api.tokenfactory.nebius.com/v1/',
+        compatibility: 'strict'
       })(resolvedModelId) as LanguageModelV1;
     
     default:

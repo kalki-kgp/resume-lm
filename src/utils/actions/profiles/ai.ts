@@ -5,6 +5,7 @@ import { RESUME_FORMATTER_SYSTEM_MESSAGE } from "@/lib/prompts";
 import { initializeAIClient, type AIConfig } from '@/utils/ai-tools';
 import { getSubscriptionPlan } from '@/utils/actions/stripe/actions';
 import { sanitizeUnknownStrings } from '@/lib/utils';
+import { MODEL_DESIGNATIONS } from '@/lib/ai-models';
 
 // TEXT RESUME -> PROFILE
 export async function formatProfileWithAI(
@@ -14,7 +15,9 @@ export async function formatProfileWithAI(
     try {
       const subscriptionPlan = await getSubscriptionPlan();
       const isPro = subscriptionPlan === 'pro';
-      const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+      // Use free model if no config provided
+      const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+      const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
   
       
       const { object } = await generateObject({

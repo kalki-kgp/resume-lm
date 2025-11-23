@@ -10,6 +10,7 @@ import { generateObject } from "ai";
 import { initializeAIClient } from "@/utils/ai-tools";
 import { resumeScoreSchema } from "@/lib/zod-schemas";
 import { getSubscriptionPlan } from "../stripe/actions";
+import { MODEL_DESIGNATIONS } from '@/lib/ai-models';
 
 
 //  SUPABASE ACTIONS
@@ -416,7 +417,9 @@ export async function generateResumeScore(
 
   const subscriptionPlan = await getSubscriptionPlan();
   const isPro = subscriptionPlan === 'pro';
-  const aiClient = isPro ? initializeAIClient(config, isPro) : initializeAIClient(config);
+  // Use free model if no config provided
+  const finalConfig = config || { model: MODEL_DESIGNATIONS.FAST_CHEAP_FREE, apiKeys: [] };
+  const aiClient = isPro ? initializeAIClient(finalConfig, isPro) : initializeAIClient(finalConfig);
 
   const isTailoredResume = job && !resume.is_base_resume;
 
